@@ -1,0 +1,681 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>SAT Genap - Bahasa Inggris Kelas 8</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
+    <style>
+        body { -webkit-tap-highlight-color: transparent; }
+        .hide-scroll::-webkit-scrollbar { display: none; }
+        .hide-scroll { -ms-overflow-style: none; scrollbar-width: none; }
+        .radio-custom:checked + div { background-color: #3b82f6; border-color: #3b82f6; color: white; }
+    </style>
+</head>
+<body class="bg-gray-50 text-gray-800 font-sans h-screen flex flex-col overflow-hidden">
+
+    <!-- SCREEN 1: LOGIN / SETUP -->
+    <div id="loginScreen" class="flex flex-col items-center justify-center h-full p-6 relative z-10">
+        <div class="bg-white p-8 rounded-2xl shadow-xl w-full max-w-md">
+            <div class="text-center mb-6">
+                <img src="https://upload.wikimedia.org/wikipedia/commons/thumb/9/9c/Logo_Tut_Wuri_Handayani.png/320px-Logo_Tut_Wuri_Handayani.png" alt="Logo" class="w-20 h-20 mx-auto mb-4">
+                <h1 class="text-2xl font-bold text-gray-900">SUMATIF AKHIR TAHUN</h1>
+                <p class="text-sm text-gray-500">Bahasa Inggris Kelas 8 - SMPN 38 Bandar Lampung</p>
+            </div>
+
+            <div class="space-y-4">
+                <div>
+                    <label class="block text-sm font-medium text-gray-700 mb-1">Nama Lengkap Siswa</label>
+                    <input type="text" id="studentName" placeholder="Masukkan nama Anda" class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none transition" required>
+                </div>
+                <div>
+                    <label class="block text-sm font-medium text-gray-700 mb-1">Kelas</label>
+                    <select id="studentClass" class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none transition" required>
+                        <option value="" disabled selected>Pilih Kelas</option>
+                        <option value="8 A">8 A</option>
+                        <option value="8 B">8 B</option>
+                        <option value="8 C">8 C</option>
+                        <option value="8 D">8 D</option>
+                    </select>
+                </div>
+                
+                <div class="bg-yellow-50 border-l-4 border-yellow-400 p-4 mt-4 text-sm text-yellow-800 rounded-r-lg">
+                    <p class="font-bold mb-1"><i class="fas fa-exclamation-triangle"></i> PERHATIAN:</p>
+                    <ul class="list-disc pl-4 space-y-1">
+                        <li>Waktu ujian 90 menit.</li>
+                        <li>Dilarang keluar dari layar ujian atau membuka tab/aplikasi lain.</li>
+                        <li>Sistem akan mendeteksi kecurangan. Maksimal peringatan 2 kali. Peringatan ke-3 ujian otomatis diselesaikan.</li>
+                    </ul>
+                </div>
+
+                <button onclick="startExam()" class="w-full bg-blue-600 hover:bg-blue-700 text-white font-bold py-3 px-4 rounded-lg shadow-md transition transform active:scale-95 mt-4">
+                    Mulai Ujian <i class="fas fa-arrow-right ml-2"></i>
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <!-- SCREEN 2: EXAM -->
+    <div id="examScreen" class="hidden flex-col h-full bg-gray-100 relative">
+        <!-- Header -->
+        <header class="bg-white shadow-sm px-4 py-3 flex justify-between items-center z-20">
+            <div>
+                <p id="headerName" class="font-bold text-gray-800 text-sm md:text-base"></p>
+                <p id="headerClass" class="text-xs text-gray-500"></p>
+            </div>
+            <div class="flex items-center space-x-3">
+                <div class="text-right">
+                    <p class="text-xs text-gray-500">Sisa Waktu</p>
+                    <p id="timerDisplay" class="font-mono font-bold text-lg text-blue-600">90:00</p>
+                </div>
+                <button onclick="toggleGrid()" class="bg-gray-200 p-2 rounded-lg text-gray-700 active:bg-gray-300">
+                    <i class="fas fa-th-large"></i>
+                </button>
+            </div>
+        </header>
+
+        <!-- Question Area -->
+        <main class="flex-1 overflow-y-auto p-4 md:p-6 hide-scroll relative pb-24">
+            <div class="max-w-2xl mx-auto bg-white rounded-xl shadow-sm p-5 md:p-8">
+                <div class="flex justify-between items-center mb-4 border-b pb-2">
+                    <h2 class="text-lg font-bold text-gray-700">Soal <span id="currentQuestionNum">1</span> / 50</h2>
+                    <span id="answeredStatus" class="text-xs px-2 py-1 bg-gray-100 text-gray-500 rounded-full">Belum dijawab</span>
+                </div>
+
+                <!-- Text reading if exists -->
+                <div id="readingTextContainer" class="hidden mb-6 p-4 bg-blue-50 border border-blue-100 rounded-lg text-sm text-gray-700 leading-relaxed">
+                    <!-- Text inserted here -->
+                </div>
+
+                <p id="questionText" class="text-base md:text-lg font-medium text-gray-800 mb-6 leading-relaxed"></p>
+
+                <div id="optionsContainer" class="space-y-3">
+                    <!-- Options injected via JS -->
+                </div>
+            </div>
+        </main>
+
+        <!-- Footer Navigation -->
+        <footer class="bg-white border-t p-4 flex justify-between items-center absolute bottom-0 w-full z-20">
+            <button onclick="prevQuestion()" id="btnPrev" class="px-4 py-2 bg-gray-200 text-gray-700 font-semibold rounded-lg shadow-sm disabled:opacity-50 active:bg-gray-300">
+                <i class="fas fa-chevron-left mr-1"></i> Sebelumnya
+            </button>
+            <button onclick="submitExamPrompt()" id="btnSubmit" class="hidden px-6 py-2 bg-green-600 text-white font-bold rounded-lg shadow-md active:bg-green-700">
+                Selesai Ujian
+            </button>
+            <button onclick="nextQuestion()" id="btnNext" class="px-4 py-2 bg-blue-600 text-white font-semibold rounded-lg shadow-sm disabled:opacity-50 active:bg-blue-700">
+                Selanjutnya <i class="fas fa-chevron-right ml-1"></i>
+            </button>
+        </footer>
+    </div>
+
+    <!-- SCREEN 3: RESULT -->
+    <div id="resultScreen" class="hidden flex-col h-full bg-gray-100">
+        <div class="flex-1 overflow-y-auto p-4 md:p-6 pb-20 hide-scroll">
+            <div class="max-w-3xl mx-auto space-y-6">
+                <!-- Score Card -->
+                <div class="bg-white rounded-2xl shadow-md p-6 text-center">
+                    <h2 class="text-2xl font-bold text-gray-800 mb-2">Ujian Selesai!</h2>
+                    <p class="text-gray-500 mb-6">Terima kasih telah mengerjakan dengan jujur.</p>
+                    
+                    <div class="flex justify-center items-center space-x-8 mb-6">
+                        <div class="text-center">
+                            <p class="text-sm text-gray-500">Benar</p>
+                            <p id="resCorrect" class="text-2xl font-bold text-green-500">0</p>
+                        </div>
+                        <div class="w-32 h-32 rounded-full border-8 border-blue-500 flex items-center justify-center bg-blue-50">
+                            <div class="text-center">
+                                <p class="text-sm text-gray-500 font-medium">NILAI</p>
+                                <p id="resScore" class="text-4xl font-black text-blue-600">0</p>
+                            </div>
+                        </div>
+                        <div class="text-center">
+                            <p class="text-sm text-gray-500">Salah</p>
+                            <p id="resWrong" class="text-2xl font-bold text-red-500">0</p>
+                        </div>
+                    </div>
+                    
+                    <p id="syncStatus" class="text-sm font-medium text-yellow-600"><i class="fas fa-sync fa-spin"></i> Menyimpan data ke server...</p>
+                </div>
+
+                <!-- Review Section -->
+                <div>
+                    <h3 class="text-lg font-bold text-gray-800 mb-4 px-2">Review Jawaban & Penjelasan</h3>
+                    <div id="reviewContainer" class="space-y-4">
+                        <!-- Review items injected here -->
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- MODAL: Question Grid -->
+    <div id="gridModal" class="hidden fixed inset-0 bg-black bg-opacity-50 z-50 flex items-end md:items-center justify-center transition-opacity">
+        <div class="bg-white w-full md:w-3/4 max-w-lg md:rounded-xl rounded-t-2xl shadow-2xl overflow-hidden flex flex-col max-h-[80vh]">
+            <div class="p-4 border-b flex justify-between items-center bg-gray-50">
+                <h3 class="font-bold text-gray-700">Daftar Soal</h3>
+                <button onclick="toggleGrid()" class="text-gray-500 hover:text-gray-800 p-2"><i class="fas fa-times text-xl"></i></button>
+            </div>
+            <div class="p-4 overflow-y-auto hide-scroll flex-1">
+                <div id="questionGrid" class="grid grid-cols-5 gap-2 md:gap-3">
+                    <!-- Grid items injected here -->
+                </div>
+            </div>
+            <div class="p-4 border-t bg-gray-50">
+                <button onclick="submitExamPrompt()" class="w-full bg-green-600 hover:bg-green-700 text-white font-bold py-3 rounded-lg">Kumpulkan Ujian Sekarang</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- MODAL: Cheating Warning -->
+    <div id="warningModal" class="hidden fixed inset-0 bg-red-900 bg-opacity-90 z-[60] flex items-center justify-center p-4">
+        <div class="bg-white rounded-xl shadow-2xl max-w-sm w-full p-6 text-center transform scale-100 transition-transform animate-bounce">
+            <div class="w-20 h-20 bg-red-100 rounded-full flex items-center justify-center mx-auto mb-4">
+                <i class="fas fa-exclamation-triangle text-4xl text-red-600"></i>
+            </div>
+            <h2 class="text-2xl font-black text-red-600 mb-2">PERINGATAN!</h2>
+            <p id="warningMessage" class="text-gray-700 mb-6 font-medium">Anda terdeteksi keluar dari layar ujian.</p>
+            <p class="text-sm text-gray-500 mb-6">Peringatan ke: <span id="warningCounter" class="font-bold text-red-600 text-lg">1 / 2</span></p>
+            <button onclick="closeWarning()" class="w-full bg-red-600 hover:bg-red-700 text-white font-bold py-3 rounded-lg">Saya Mengerti & Kembali</button>
+        </div>
+    </div>
+
+    <!-- MODAL: Confirm Submit -->
+    <div id="confirmModal" class="hidden fixed inset-0 bg-black bg-opacity-60 z-[60] flex items-center justify-center p-4">
+        <div class="bg-white rounded-xl shadow-2xl max-w-sm w-full p-6 text-center">
+            <h2 class="text-xl font-bold text-gray-800 mb-2">Kumpulkan Jawaban?</h2>
+            <p class="text-gray-600 mb-6 text-sm" id="unansweredText">Pastikan semua soal telah dijawab. Anda tidak bisa kembali setelah ini.</p>
+            <div class="flex space-x-3">
+                <button onclick="closeConfirm()" class="flex-1 bg-gray-200 text-gray-800 font-bold py-2 rounded-lg">Batal</button>
+                <button onclick="submitExam()" class="flex-1 bg-blue-600 text-white font-bold py-2 rounded-lg">Ya, Kumpulkan</button>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        /**
+         * ==========================================
+         * KONFIGURASI GOOGLE SHEETS
+         * ==========================================
+         * 1. Buka Google Sheets baru.
+         * 2. Klik Ekstensi > Apps Script.
+         * 3. Hapus kode yang ada, paste kode berikut (tanpa tanda kutip):
+         * * function doPost(e) {
+         * var sheet = SpreadsheetApp.getActiveSpreadsheet().getActiveSheet();
+         * var data = JSON.parse(e.postData.contents);
+         * sheet.appendRow([new Date(), data.nama, data.kelas, data.benar, data.salah, data.nilai]);
+         * return ContentService.createTextOutput(JSON.stringify({"result":"success"})).setMimeType(ContentService.MimeType.JSON);
+         * }
+         * * 4. Klik Terapkan (Deploy) > Deployment Baru.
+         * 5. Pilih jenis: Aplikasi Web. Akses: "Siapa saja" (Anyone).
+         * 6. Salin URL Web App dan paste pada variabel scriptURL di bawah ini:
+         */
+        const scriptURL = 'https://script.google.com/macros/s/AKfycbxHziRjWt3nX8oI2czg38Mf7cWgkSc-cSL7M3h_qDOaDTDJscSd8H4g1jyS1E-oQsll5Q/exec'; // Ganti dengan URL Anda nanti
+
+        // Data Soal (50 Soal Sesuai Kurikulum Kelas 8)
+        const textReportElephant = "Elephants are the largest land animals on Earth. They have characteristic long noses, or trunks; large, floppy ears; and wide, thick legs. Elephants are herbivores and eat leaves, twigs, fruit, bark, and roots.";
+        const textNarrativeSangkuriang = "Once upon a time, there was a man named Sangkuriang. He fell in love with a beautiful woman named Dayang Sumbi, not knowing she was his own mother. To stop him from marrying her, Dayang Sumbi asked him to build a lake and a boat in one night. Sangkuriang failed because Dayang Sumbi tricked the roosters to crow early.";
+
+        const questionsData = [
+            // Appreciating Performance (1-10)
+            { q: "What do you say to appreciate your friend who just won a singing contest?", options: ["You are so bad.", "Congratulations! You did a great job.", "I don't care.", "Better luck next time."], answer: 1, explanation: "Ungkapan apresiasi yang tepat saat seseorang menang adalah mengucapkan selamat (Congratulations) dan memuji kerjanya." },
+            { q: "Your sister cooked a very delicious soup. What is the best expression to appreciate her?", options: ["The soup is terrible.", "What a delicious soup!", "I can cook better.", "Don't cook again."], answer: 1, explanation: "Pujian 'What a delicious soup!' (Betapa lezatnya sup ini) sangat tepat untuk mengapresiasi masakan." },
+            { q: "A: Look at my new painting!\nB: Wow, ... !", options: ["It's awful", "What a beautiful painting", "I hate it", "You should stop painting"], answer: 1, explanation: "B harus merespon dengan pujian atas lukisan A." },
+            { q: "Which of the following is an expression of praising someone's performance?", options: ["Excellent work!", "You must go.", "Are you okay?", "I am sorry."], answer: 0, explanation: "'Excellent work!' adalah bentuk pujian." },
+            { q: "Andi gets 100 on his English test. Teacher: '..., Andi!'", options: ["Good job", "I'm sorry to hear that", "Don't do that", "Never mind"], answer: 0, explanation: "'Good job' digunakan guru untuk memuji siswa yang mendapat nilai sempurna." },
+            { q: "Siti: 'I cleaned the classroom by myself.'\nDayu: '... You are very diligent.'", options: ["That's too bad.", "Are you sure?", "Great! Thank you.", "I agree with you."], answer: 2, explanation: "Apresiasi yang baik adalah dengan memuji (Great) dan berterima kasih karena sudah membantu." },
+            { q: "When someone says 'You look great in that dress!', how should you respond?", options: ["No, I am ugly.", "Thank you.", "I don't like you.", "Why do you care?"], answer: 1, explanation: "Respons yang sopan saat dipuji adalah berterima kasih (Thank you)." },
+            { q: "Teacher: 'Your presentation was brilliant, Budi.'\nBudi: '...' ", options: ["Thank you, Sir.", "It's nothing.", "I know right.", "Whatever."], answer: 0, explanation: "Sopan santun berterima kasih kepada guru atas pujiannya." },
+            { q: "Rina helped her mother wash the dishes. Mother: 'Thank you, dear. You are ...'", options: ["a lazy girl", "a helpful girl", "a bad girl", "a noisy girl"], answer: 1, explanation: "Anak yang membantu mencuci piring adalah anak yang suka menolong (helpful)." },
+            { q: "What a/an ... performance! The audience gave a standing ovation.", options: ["boring", "terrible", "amazing", "bad"], answer: 2, explanation: "Standing ovation (tepuk tangan berdiri) diberikan untuk penampilan yang luar biasa (amazing)." },
+
+            // Obligation & Prohibition (11-20)
+            { q: "Students ... wear uniforms to school. It is the rule.", options: ["must", "must not", "should not", "can"], answer: 0, explanation: "Keharusan yang merupakan aturan sekolah menggunakan 'must'." },
+            { q: "You ... smoke in the hospital area. It is forbidden.", options: ["must", "must not", "should", "can"], answer: 1, explanation: "Larangan keras menggunakan 'must not'." },
+            { q: "It's raining heavily outside. You ... bring an umbrella.", options: ["should not", "must not", "should", "don't have to"], answer: 2, explanation: "Saran yang kuat/keharusan logis menggunakan 'should'." },
+            { q: "The sign says 'Do Not Feed the Animals'. It means visitors ... feed the animals.", options: ["must", "must not", "should", "can"], answer: 1, explanation: "'Do not' pada rambu berarti larangan keras (must not)." },
+            { q: "Tomorrow is Sunday. I ... get up early because there is no school.", options: ["must", "don't have to", "must not", "should"], answer: 1, explanation: "Tidak ada keharusan (don't have to) bangun pagi karena hari libur." },
+            { q: "We ... listen to our teacher when she is explaining the lesson.", options: ["should not", "must", "must not", "can't"], answer: 1, explanation: "Mendengarkan guru adalah sebuah keharusan (must)." },
+            { q: "You look very sick. You ... go to the doctor immediately.", options: ["should", "should not", "must not", "cannot"], answer: 0, explanation: "Saran yang kuat untuk orang sakit adalah 'should' pergi ke dokter." },
+            { q: "We ... littering in the park. Let's keep it clean.", options: ["must", "should", "must not", "have to"], answer: 2, explanation: "Membuang sampah sembarangan adalah larangan (must not)." },
+            { q: "To pass the exam, you ... study hard.", options: ["must not", "don't have to", "must", "shouldn't"], answer: 2, explanation: "Belajar giat adalah keharusan mutlak untuk lulus ujian (must)." },
+            { q: "Drivers ... stop when the traffic light is red.", options: ["should", "must not", "can", "must"], answer: 3, explanation: "Aturan lalu lintas adalah keharusan mutlak (must)." },
+
+            // Comparison Degree (21-30)
+            { q: "A tiger is ... than a cat.", options: ["big", "bigger", "biggest", "more big"], answer: 1, explanation: "Membandingkan dua hal menggunakan comparative (tambah -er): bigger." },
+            { q: "Mount Everest is the ... mountain in the world.", options: ["high", "higher", "highest", "most high"], answer: 2, explanation: "Paling tinggi di dunia menggunakan superlative (tambah -est): highest." },
+            { q: "Mathematics is often considered ... than English by some students.", options: ["difficult", "more difficult", "most difficult", "difficulter"], answer: 1, explanation: "Kata dengan 3 suku kata (dif-fi-cult) menggunakan 'more' untuk comparative." },
+            { q: "My sister is 150 cm tall. I am 150 cm tall. My sister is ... me.", options: ["taller than", "shorter than", "as tall as", "the tallest"], answer: 2, explanation: "Tinggi yang sama menggunakan positive degree (as + adjective + as)." },
+            { q: "This is the ... movie I have ever seen! I almost fell asleep.", options: ["boring", "more boring", "most boring", "boringer"], answer: 2, explanation: "Superlative untuk kata sifat panjang (boring) menggunakan 'most'." },
+            { q: "Today the weather is ... than yesterday.", options: ["good", "better", "best", "more good"], answer: 1, explanation: "Bentuk comparative tidak beraturan dari 'good' adalah 'better'." },
+            { q: "Rabbits run ... than turtles.", options: ["fast", "faster", "fastest", "more fast"], answer: 1, explanation: "Membandingkan dua hewan, tambah -er (faster)." },
+            { q: "She is the ... girl in our class. She always helps everyone.", options: ["kind", "kinder", "kindest", "most kindest"], answer: 2, explanation: "Superlative (paling) dari kind adalah kindest." },
+            { q: "An elephant is ... than a cow, but a whale is the ... of them all.", options: ["heavy / heaviest", "heavier / heaviest", "heavier / heavier", "heavy / heavy"], answer: 1, explanation: "Comparative: heavier (lebih berat). Superlative: heaviest (paling berat)." },
+            { q: "My bag is Rp 50.000. Your bag is Rp 200.000. My bag is ... than yours.", options: ["expensive", "more expensive", "cheaper", "cheapest"], answer: 2, explanation: "Rp 50.000 lebih murah (cheaper) daripada Rp 200.000." },
+
+            // Narrative Text (31-40) - Using Sangkuriang Text
+            { text: textNarrativeSangkuriang, q: "Who did Sangkuriang fall in love with?", options: ["His sister", "His mother", "A princess", "A villager"], answer: 1, explanation: "Di teks disebutkan: 'He fell in love with a beautiful woman named Dayang Sumbi, not knowing she was his own mother.'" },
+            { text: textNarrativeSangkuriang, q: "Why did Dayang Sumbi ask him to build a lake and a boat?", options: ["She loved boats.", "To make him rich.", "To stop him from marrying her.", "To travel the world."], answer: 2, explanation: "Teks menyebutkan: 'To stop him from marrying her, Dayang Sumbi asked him...'" },
+            { text: textNarrativeSangkuriang, q: "How much time did Sangkuriang have to finish the task?", options: ["One month", "One week", "One day", "One night"], answer: 3, explanation: "Teks menyebutkan: 'in one night.'" },
+            { text: textNarrativeSangkuriang, q: "Did Sangkuriang succeed in building the lake and boat?", options: ["Yes, he did.", "No, he didn't.", "He almost succeeded.", "He asked for more time."], answer: 1, explanation: "Teks menyatakan 'Sangkuriang failed...'" },
+            { text: textNarrativeSangkuriang, q: "How did Dayang Sumbi trick Sangkuriang?", options: ["She destroyed the boat.", "She killed him.", "She tricked the roosters to crow early.", "She hid the tools."], answer: 2, explanation: "Teks menyebutkan: 'Dayang Sumbi tricked the roosters to crow early.'" },
+            { text: "A fox fell into a well and couldn't get out. A thirsty goat came and asked if the water was good. The fox lied and said it was the best. The goat jumped in, and the fox climbed on the goat's back to escape, leaving the goat trapped.", q: "What is the main character of the text above?", options: ["A fox and a goat", "A well", "Water", "A farmer"], answer: 0, explanation: "Tokoh utama fabel tersebut adalah Rubah (Fox) dan Kambing (Goat)." },
+            { text: "A fox fell into a well...", q: "Why did the goat jump into the well?", options: ["To save the fox", "Because it was thirsty and believed the fox", "To swim", "Because it was pushed"], answer: 1, explanation: "Kambing melompat karena ia haus dan percaya kebohongan rubah tentang air yang enak." },
+            { text: "A fox fell into a well...", q: "How did the fox escape?", options: ["Someone pulled him up.", "He drank all the water.", "He climbed on the goat's back.", "He flew out."], answer: 2, explanation: "Rubah keluar dengan cara memanjat punggung kambing (climbed on the goat's back)." },
+            { text: "A fox fell into a well...", q: "What is the moral value of the story?", options: ["Always help a fox.", "Don't be thirsty.", "Look before you leap and don't easily trust strangers.", "Wells are dangerous."], answer: 2, explanation: "Pesan moralnya adalah teliti sebelum bertindak (look before you leap) dan jangan mudah percaya." },
+            { q: "What is the social function of a narrative text?", options: ["To describe something.", "To tell steps on how to make something.", "To entertain or amuse the reader.", "To report facts."], answer: 2, explanation: "Fungsi sosial Narrative Text adalah untuk menghibur pembaca (entertain/amuse)." },
+
+            // Report Text (41-50) - Using Elephant Text
+            { text: textReportElephant, q: "What is the text mainly about?", options: ["Tigers", "Elephants", "Forests", "Zoo animals"], answer: 1, explanation: "Teks tersebut secara umum menjelaskan tentang Gajah (Elephants)." },
+            { text: textReportElephant, q: "Elephants are the ... land animals on Earth.", options: ["smallest", "fastest", "largest", "smartest"], answer: 2, explanation: "Di kalimat pertama disebutkan 'Elephants are the largest land animals...'." },
+            { text: textReportElephant, q: "What is another name for an elephant's long nose?", options: ["Ear", "Trunk", "Tusk", "Tail"], answer: 1, explanation: "Teks menyebutkan 'long noses, or trunks'." },
+            { text: textReportElephant, q: "According to the text, what kind of food do elephants eat?", options: ["Meat and fish", "Only fruits", "Leaves, twigs, fruit, bark, and roots", "Insects"], answer: 2, explanation: "Teks menyebutkan: 'eat leaves, twigs, fruit, bark, and roots.'" },
+            { text: textReportElephant, q: "The word 'herbivores' in the text means animals that eat ...", options: ["other animals", "plants", "everything", "stones"], answer: 1, explanation: "Herbivora adalah hewan pemakan tumbuhan (plants)." },
+            { text: "Cacti (plural of cactus) are unusual plants. They are adapted to survive in hot, dry deserts. They have thick, fleshy stems that store water. Instead of leaves, most cacti have spines to protect them from animals.", q: "Where do cacti usually grow?", options: ["In cold mountains", "In tropical rain forests", "In hot, dry deserts", "Under the sea"], answer: 2, explanation: "Teks menyebutkan 'adapted to survive in hot, dry deserts'." },
+            { text: "Cacti (plural of cactus)...", q: "How do cacti store water?", options: ["In their roots", "In their thick, fleshy stems", "In their leaves", "In their flowers"], answer: 1, explanation: "Teks menyatakan 'They have thick, fleshy stems that store water.'" },
+            { text: "Cacti (plural of cactus)...", q: "Why do cacti have spines instead of leaves?", options: ["To look beautiful", "To protect them from animals", "To catch insects", "To give shade"], answer: 1, explanation: "Teks menyebutkan 'spines to protect them from animals.'" },
+            { q: "What is the difference between Report text and Descriptive text?", options: ["Report describes specific thing, Descriptive describes general class.", "Report describes general class, Descriptive describes specific thing.", "They are exactly the same.", "Report is fiction, Descriptive is fact."], answer: 1, explanation: "Report mendeskripsikan sesuatu secara umum (spesies, fenomena alam), sedangkan Descriptive mendeskripsikan benda/orang secara spesifik." },
+            { q: "The tense mostly used in Report text is...", options: ["Simple Past Tense", "Simple Future Tense", "Present Continuous Tense", "Simple Present Tense"], answer: 3, explanation: "Report text menyatakan fakta umum, sehingga menggunakan Simple Present Tense." }
+        ];
+
+        // State variables
+        let currentQuestion = 0;
+        let userAnswers = new Array(50).fill(null);
+        let timeRemaining = 90 * 60; // 90 minutes in seconds
+        let timerInterval = null;
+        let warningCount = 0;
+        let isExamActive = false;
+        let studentData = { name: '', class: '' };
+
+        // DOM Elements
+        const screens = {
+            login: document.getElementById('loginScreen'),
+            exam: document.getElementById('examScreen'),
+            result: document.getElementById('resultScreen')
+        };
+
+        // Initialize exam
+        function startExam() {
+            const nameInput = document.getElementById('studentName').value.trim();
+            const classInput = document.getElementById('studentClass').value;
+
+            if (!nameInput || !classInput) {
+                alert("Harap isi Nama dan pilih Kelas terlebih dahulu!");
+                return;
+            }
+
+            studentData.name = nameInput;
+            studentData.class = classInput;
+
+            // Setup Header
+            document.getElementById('headerName').innerText = nameInput;
+            document.getElementById('headerClass').innerText = "Kelas: " + classInput;
+
+            // Transition Screen
+            screens.login.classList.add('hidden');
+            screens.exam.classList.remove('hidden');
+            screens.exam.classList.add('flex');
+
+            // Request Fullscreen
+            if (document.documentElement.requestFullscreen) {
+                document.documentElement.requestFullscreen().catch(err => console.log("Fullscreen refused"));
+            }
+
+            isExamActive = true;
+            generateGrid();
+            renderQuestion();
+            startTimer();
+        }
+
+        // Timer Logic
+        function startTimer() {
+            timerInterval = setInterval(() => {
+                timeRemaining--;
+                updateTimerDisplay();
+
+                if (timeRemaining <= 0) {
+                    clearInterval(timerInterval);
+                    autoSubmit("Waktu Habis!");
+                }
+            }, 1000);
+        }
+
+        function updateTimerDisplay() {
+            const m = Math.floor(timeRemaining / 60).toString().padStart(2, '0');
+            const s = (timeRemaining % 60).toString().padStart(2, '0');
+            const display = document.getElementById('timerDisplay');
+            display.innerText = `${m}:${s}`;
+            
+            if (timeRemaining < 300) { // last 5 minutes
+                display.classList.remove('text-blue-600');
+                display.classList.add('text-red-600', 'animate-pulse');
+            }
+        }
+
+        // Render Question
+        function renderQuestion() {
+            const q = questionsData[currentQuestion];
+            document.getElementById('currentQuestionNum').innerText = currentQuestion + 1;
+            
+            // Check status
+            const statusEl = document.getElementById('answeredStatus');
+            if (userAnswers[currentQuestion] !== null) {
+                statusEl.innerText = "Sudah dijawab";
+                statusEl.className = "text-xs px-2 py-1 bg-green-100 text-green-700 rounded-full";
+            } else {
+                statusEl.innerText = "Belum dijawab";
+                statusEl.className = "text-xs px-2 py-1 bg-gray-100 text-gray-500 rounded-full";
+            }
+
+            // Render Text if exists
+            const textContainer = document.getElementById('readingTextContainer');
+            if (q.text) {
+                textContainer.innerText = q.text;
+                textContainer.classList.remove('hidden');
+            } else {
+                textContainer.classList.add('hidden');
+            }
+
+            // Render Question Text
+            document.getElementById('questionText').innerText = q.q.replace(/\n/g, "<br>");
+            document.getElementById('questionText').innerHTML = document.getElementById('questionText').innerText;
+
+            // Render Options
+            const optsContainer = document.getElementById('optionsContainer');
+            optsContainer.innerHTML = '';
+            
+            const labels = ['A', 'B', 'C', 'D'];
+            q.options.forEach((opt, index) => {
+                const isChecked = userAnswers[currentQuestion] === index ? 'checked' : '';
+                
+                const optHTML = `
+                    <label class="block cursor-pointer relative group">
+                        <input type="radio" name="q_option" value="${index}" class="peer sr-only radio-custom" ${isChecked} onchange="selectAnswer(${index})">
+                        <div class="flex items-center p-3 border-2 border-gray-200 rounded-xl hover:bg-gray-50 transition-colors peer-checked:bg-blue-50 peer-checked:border-blue-500">
+                            <span class="w-8 h-8 rounded-full border-2 border-gray-300 flex items-center justify-center mr-3 font-bold text-gray-500 peer-checked:border-blue-500 peer-checked:bg-blue-500 peer-checked:text-white transition-all">
+                                ${labels[index]}
+                            </span>
+                            <span class="text-gray-700 font-medium peer-checked:text-blue-800">${opt}</span>
+                        </div>
+                    </label>
+                `;
+                optsContainer.insertAdjacentHTML('beforeend', optHTML);
+            });
+
+            // Update Navigation Buttons
+            document.getElementById('btnPrev').disabled = currentQuestion === 0;
+            
+            if (currentQuestion === questionsData.length - 1) {
+                document.getElementById('btnNext').classList.add('hidden');
+                document.getElementById('btnSubmit').classList.remove('hidden');
+            } else {
+                document.getElementById('btnNext').classList.remove('hidden');
+                document.getElementById('btnSubmit').classList.add('hidden');
+            }
+
+            updateGridUI();
+        }
+
+        // Handle Answer
+        function selectAnswer(index) {
+            userAnswers[currentQuestion] = index;
+            renderQuestion(); // Re-render to update status badge
+        }
+
+        // Navigation
+        function nextQuestion() {
+            if (currentQuestion < questionsData.length - 1) {
+                currentQuestion++;
+                renderQuestion();
+            }
+        }
+
+        function prevQuestion() {
+            if (currentQuestion > 0) {
+                currentQuestion--;
+                renderQuestion();
+            }
+        }
+
+        function goToQuestion(idx) {
+            currentQuestion = idx;
+            renderQuestion();
+            toggleGrid();
+        }
+
+        // Question Grid Modal
+        function generateGrid() {
+            const grid = document.getElementById('questionGrid');
+            grid.innerHTML = '';
+            for (let i = 0; i < questionsData.length; i++) {
+                const btn = document.createElement('button');
+                btn.id = `gridBtn_${i}`;
+                btn.innerText = i + 1;
+                btn.className = "h-10 rounded font-bold text-sm transition-colors border";
+                btn.onclick = () => goToQuestion(i);
+                grid.appendChild(btn);
+            }
+            updateGridUI();
+        }
+
+        function updateGridUI() {
+            for (let i = 0; i < questionsData.length; i++) {
+                const btn = document.getElementById(`gridBtn_${i}`);
+                if (userAnswers[i] !== null) {
+                    btn.classList.add('bg-green-500', 'text-white', 'border-green-600');
+                    btn.classList.remove('bg-white', 'text-gray-700', 'border-gray-300');
+                } else {
+                    btn.classList.add('bg-white', 'text-gray-700', 'border-gray-300');
+                    btn.classList.remove('bg-green-500', 'text-white', 'border-green-600');
+                }
+                
+                // Highlight current
+                if (i === currentQuestion) {
+                    btn.classList.add('ring-2', 'ring-blue-500', 'ring-offset-1');
+                } else {
+                    btn.classList.remove('ring-2', 'ring-blue-500', 'ring-offset-1');
+                }
+            }
+        }
+
+        function toggleGrid() {
+            const modal = document.getElementById('gridModal');
+            modal.classList.toggle('hidden');
+        }
+
+        // Anti-Cheating Logic
+        document.addEventListener("visibilitychange", () => {
+            if (isExamActive && document.hidden) {
+                handleCheat();
+            }
+        });
+
+        window.addEventListener("blur", () => {
+            // Some mobile browsers trigger blur unpredictably, so we combine it with a check
+            if (isExamActive && !document.getElementById('warningModal').classList.contains('hidden') === false) {
+                // To avoid double triggers with visibilitychange, we add slight delay
+                setTimeout(() => {
+                    if(document.hidden) return; // handled by visibilitychange
+                    handleCheat();
+                }, 200);
+            }
+        });
+
+        function handleCheat() {
+            if (!isExamActive) return;
+            warningCount++;
+            
+            const warningModal = document.getElementById('warningModal');
+            const warningMsg = document.getElementById('warningMessage');
+            const counter = document.getElementById('warningCounter');
+
+            if (warningCount === 1) {
+                warningMsg.innerText = "Anda keluar dari tab/layar ujian. Jangan ulangi atau ujian akan dibatalkan.";
+                counter.innerText = "1 / 2";
+                warningModal.classList.remove('hidden');
+            } else if (warningCount === 2) {
+                warningMsg.innerText = "Ini peringatan terakhir! Jika Anda keluar lagi, ujian otomatis dikumpulkan dengan nilai seadanya.";
+                counter.innerText = "2 / 2";
+                warningModal.classList.remove('hidden');
+            } else if (warningCount >= 3) {
+                autoSubmit("Pelanggaran Maksimal");
+            }
+        }
+
+        function closeWarning() {
+            document.getElementById('warningModal').classList.add('hidden');
+            // Request Fullscreen back
+            if (document.documentElement.requestFullscreen) {
+                document.documentElement.requestFullscreen().catch(err => console.log("Fullscreen refused"));
+            }
+        }
+
+        // Submission Logic
+        function submitExamPrompt() {
+            document.getElementById('gridModal').classList.add('hidden');
+            const unanswered = userAnswers.filter(a => a === null).length;
+            const textEl = document.getElementById('unansweredText');
+            
+            if (unanswered > 0) {
+                textEl.innerHTML = `<span class="text-red-500 font-bold">Peringatan: Ada ${unanswered} soal yang belum dijawab!</span><br>Anda yakin ingin mengumpulkan sekarang?`;
+            } else {
+                textEl.innerText = "Semua soal telah dijawab. Anda yakin ingin mengumpulkan sekarang?";
+            }
+            
+            document.getElementById('confirmModal').classList.remove('hidden');
+        }
+
+        function closeConfirm() {
+            document.getElementById('confirmModal').classList.add('hidden');
+        }
+
+        function autoSubmit(reason) {
+            alert(reason + " - Ujian Anda otomatis dikumpulkan.");
+            submitExam();
+        }
+
+        function submitExam() {
+            isExamActive = false;
+            clearInterval(timerInterval);
+            document.getElementById('confirmModal').classList.add('hidden');
+            screens.exam.classList.add('hidden');
+            screens.result.classList.remove('hidden');
+            screens.result.classList.add('flex');
+
+            calculateAndShowResult();
+        }
+
+        function calculateAndShowResult() {
+            let correct = 0;
+            let wrong = 0;
+
+            userAnswers.forEach((ans, idx) => {
+                if (ans === questionsData[idx].answer) {
+                    correct++;
+                } else {
+                    wrong++;
+                }
+            });
+
+            const score = correct * 2; // 50 soal * 2 poin = 100 max
+
+            // Update UI
+            document.getElementById('resCorrect').innerText = correct;
+            document.getElementById('resWrong').innerText = wrong;
+            document.getElementById('resScore').innerText = score;
+
+            // Send to Google Sheets
+            syncDataToSheet(studentData.name, studentData.class, correct, wrong, score);
+
+            // Render Reviews
+            const reviewContainer = document.getElementById('reviewContainer');
+            reviewContainer.innerHTML = '';
+            
+            const labels = ['A', 'B', 'C', 'D'];
+
+            questionsData.forEach((q, idx) => {
+                const userAns = userAnswers[idx];
+                const isCorrect = userAns === q.answer;
+                
+                let ansBadge = '';
+                if (userAns === null) {
+                    ansBadge = `<span class="bg-gray-200 text-gray-700 px-2 py-1 rounded text-xs font-bold">Tidak dijawab</span>`;
+                } else if (isCorrect) {
+                    ansBadge = `<span class="bg-green-100 text-green-700 px-2 py-1 rounded text-xs font-bold"><i class="fas fa-check"></i> Jawaban Anda Benar</span>`;
+                } else {
+                    ansBadge = `<span class="bg-red-100 text-red-700 px-2 py-1 rounded text-xs font-bold"><i class="fas fa-times"></i> Jawaban Anda Salah</span>`;
+                }
+
+                const userOptText = userAns !== null ? labels[userAns] + ". " + q.options[userAns] : "-";
+                const correctOptText = labels[q.answer] + ". " + q.options[q.answer];
+
+                const reviewHTML = `
+                    <div class="bg-white p-4 rounded-xl shadow-sm border border-gray-100">
+                        <div class="flex justify-between items-start mb-2">
+                            <span class="font-bold text-gray-800">Soal ${idx + 1}</span>
+                            ${ansBadge}
+                        </div>
+                        <p class="text-sm text-gray-700 mb-3">${q.q}</p>
+                        
+                        <div class="grid grid-cols-1 md:grid-cols-2 gap-2 text-sm mb-3">
+                            <div class="bg-gray-50 p-2 rounded border">
+                                <span class="text-gray-500 text-xs block mb-1">Jawaban Anda:</span>
+                                <span class="${isCorrect ? 'text-green-600 font-medium' : 'text-red-600 font-medium'}">${userOptText}</span>
+                            </div>
+                            <div class="bg-green-50 p-2 rounded border border-green-100">
+                                <span class="text-green-600 text-xs block mb-1">Kunci Jawaban:</span>
+                                <span class="text-green-700 font-bold">${correctOptText}</span>
+                            </div>
+                        </div>
+                        
+                        <div class="bg-blue-50 border-l-4 border-blue-400 p-3 rounded-r text-sm text-blue-800">
+                            <strong>Penjelasan:</strong> ${q.explanation}
+                        </div>
+                    </div>
+                `;
+                reviewContainer.insertAdjacentHTML('beforeend', reviewHTML);
+            });
+        }
+
+        // Sync Data to Google Sheets Function
+        function syncDataToSheet(nama, kelas, benar, salah, nilai) {
+            const statusEl = document.getElementById('syncStatus');
+            
+            // Siapkan data JSON
+            const dataPayload = {
+                nama: nama,
+                kelas: kelas,
+                benar: benar,
+                salah: salah,
+                nilai: nilai
+            };
+
+            // Jika scriptURL belum diatur, beri tahu simulasi saja
+            if (scriptURL === 'YOUR_GOOGLE_APPS_SCRIPT_URL_HERE') {
+                setTimeout(() => {
+                    statusEl.innerHTML = '<i class="fas fa-info-circle"></i> URL Spreadsheet belum dikonfigurasi. Data tidak tersimpan online, tapi ujian selesai.';
+                    statusEl.className = 'text-sm font-medium text-gray-500';
+                }, 1500);
+                return;
+            }
+
+            fetch(scriptURL, {
+                method: 'POST',
+                mode: 'no-cors', // Untuk mencegah isu CORS di Google Scripts
+                headers: {
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify(dataPayload)
+            }).then(() => {
+                statusEl.innerHTML = '<i class="fas fa-check-circle"></i> Data berhasil tersimpan di server sekolah.';
+                statusEl.className = 'text-sm font-medium text-green-600';
+            }).catch(error => {
+                console.error('Error!', error.message);
+                statusEl.innerHTML = '<i class="fas fa-times-circle"></i> Gagal menyimpan data ke server. Harap lapor guru.';
+                statusEl.className = 'text-sm font-medium text-red-600';
+            });
+        }
+    </script>
+</body>
+</html>
